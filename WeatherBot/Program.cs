@@ -32,7 +32,8 @@ string chatDeploymentName = projectSettings.ChatDeploymentName;
 string apiVersion = projectSettings.ApiVersion;
 string languageKey = secretsFromUserSecrets.LanguageKey;
 string languageEndpoint = secretsFromUserSecrets.LanguageEndpoint;
-//string mapsApiKey = secretsFromUserSecrets.AzureMapsApiKey;
+string mapsApiKey = secretsFromUserSecrets.AzureMapsApiKey;
+string defaultLocation = projectSettings.DefaultLocation;
 
 // Alternative way to get a single value from configuration (commented out)
 // string? chatDeploymentName = config.GetValue<string>("ProjectSettings:ChatDeploymentName");
@@ -46,8 +47,8 @@ kernelBuilder
         endpoint: endpoint,
         apiKey: azureOpenAiApiKey,
         apiVersion: apiVersion
-    )
-    .Services.AddLogging(services => services.AddConsole().SetMinimumLevel(LogLevel.Trace));
+    );
+    //.Services.AddLogging(services => services.AddConsole().SetMinimumLevel(LogLevel.Trace));
 
 
 // Add logging to the kernel builder for debugging and tracing
@@ -71,7 +72,9 @@ if (string.IsNullOrEmpty(systemMessage))
 systemMessage = systemMessage.Trim();
 
 // Add the WeatherPlugin with the required parameters
-kernel.Plugins.AddFromType<WeatherPlugin>("get_weather");
+var weatherPlugin = new WeatherPlugin(mapsApiKey, defaultLocation);
+//kernel.Plugins.AddFromType<WeatherPlugin>("get_weather");
+kernel.Plugins.AddFromObject(weatherPlugin, "get_weather");
 // Add the EntityExtractorPlugin with the required parameters
 var entityExtractorPlugin = new EntityExtractorPlugin(languageKey, languageEndpoint);
 kernel.Plugins.AddFromObject(entityExtractorPlugin, "get_entities");
